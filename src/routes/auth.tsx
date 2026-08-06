@@ -4,7 +4,6 @@ import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,14 +72,6 @@ function AuthPage() {
     }
   }
 
-  async function handleGoogle() {
-    try {
-      await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
-    }
-  }
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-5 py-10">
       <Link to="/" className="mb-8 flex items-center gap-2">
@@ -121,14 +112,6 @@ function AuthPage() {
                 {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
               </Button>
             </form>
-
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <Button variant="outline" className="w-full" onClick={handleGoogle}>
-              Continue with Google
-            </Button>
           </>
         )}
 
