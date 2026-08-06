@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Siren, MapPin, Timer, PhoneCall, CheckCircle2, X } from "lucide-react";
+import { Siren, MapPin, Timer, PhoneCall, CheckCircle2, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -114,9 +114,25 @@ function Dashboard() {
   }, [remaining]);
 
   const activeAlerts = (alerts.data ?? []).filter((a) => a.is_active);
+  const verifiedContacts = (contacts.data ?? []).filter((c) => c.verified_at);
+  const needsSetup = !contacts.isLoading && verifiedContacts.length === 0;
 
   return (
     <AppShell>
+      {needsSetup && (
+        <section className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+          <ShieldAlert className="h-5 w-5 shrink-0 text-primary" />
+          <div className="min-w-40 flex-1">
+            <p className="text-sm font-medium">Finish setting up SOS</p>
+            <p className="text-xs text-muted-foreground">
+              Add and verify at least one trusted contact so your alerts actually reach someone.
+            </p>
+          </div>
+          <Button asChild size="sm">
+            <Link to="/onboarding">Start setup</Link>
+          </Button>
+        </section>
+      )}
       <section className="rounded-3xl border border-destructive/30 bg-destructive/5 p-6 text-center">
         <p className="text-sm text-muted-foreground">In danger? Hold nothing back.</p>
         <button

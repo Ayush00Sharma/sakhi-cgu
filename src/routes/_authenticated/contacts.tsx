@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -106,9 +106,18 @@ function Contacts() {
               <p className="text-sm font-medium">{c.name}</p>
               <p className="text-xs text-muted-foreground">{c.relationship ?? "Contact"} · {c.phone}</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => removeContact.mutate(c.id)} aria-label={`Remove ${c.name}`}>
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {c.verified_at ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Verified
+                </span>
+              ) : (
+                <span className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">Unverified</span>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => removeContact.mutate(c.id)} aria-label={`Remove ${c.name}`}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
           </li>
         ))}
         {(contacts.data ?? []).length === 0 && !contacts.isLoading && (
