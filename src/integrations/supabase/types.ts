@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          onboarding_completed_at: string | null
           phone: string | null
           updated_at: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          onboarding_completed_at?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_completed_at?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -84,6 +87,8 @@ export type Database = {
           relationship: string | null
           updated_at: string
           user_id: string
+          verification_sent_at: string | null
+          verified_at: string | null
         }
         Insert: {
           created_at?: string
@@ -94,6 +99,8 @@ export type Database = {
           relationship?: string | null
           updated_at?: string
           user_id: string
+          verification_sent_at?: string | null
+          verified_at?: string | null
         }
         Update: {
           created_at?: string
@@ -104,6 +111,8 @@ export type Database = {
           relationship?: string | null
           updated_at?: string
           user_id?: string
+          verification_sent_at?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
