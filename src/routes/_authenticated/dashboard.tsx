@@ -253,7 +253,15 @@ function Dashboard() {
                   {m}m
                 </button>
               ))}
-              <Button className="ml-auto" onClick={() => setRemaining(minutes * 60)}>Start</Button>
+              <Button
+                className="ml-auto h-12"
+                onClick={() => {
+                  setRemaining(minutes * 60);
+                  if (settings.auto_share_location) void liveShare.startShare("checkin");
+                }}
+              >
+                Start
+              </Button>
             </div>
           </>
         ) : (
@@ -266,6 +274,7 @@ function Dashboard() {
               <Button
                 onClick={() => {
                   setRemaining(null);
+                  void liveShare.stopShare();
                   raiseAlert.mutate({ type: "safe_arrival", message: "Checked in safely." });
                 }}
               >
@@ -275,6 +284,13 @@ function Dashboard() {
           </div>
         )}
       </section>
+
+      <LiveShareCard
+        share={liveShare.share}
+        busy={liveShare.busy}
+        onStart={() => void liveShare.startShare("manual")}
+        onStop={() => void liveShare.stopShare()}
+      />
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-5">
         <h2 className="font-semibold">Your trusted circle</h2>
@@ -312,6 +328,12 @@ function Dashboard() {
           ))}
         </div>
       </section>
+
+      <SafeSpacesMap />
+
+      <IncidentReportForm />
+
+      <SafetySettingsCard />
 
       <section className="mt-6">
         <h2 className="font-semibold">Recent activity</h2>
