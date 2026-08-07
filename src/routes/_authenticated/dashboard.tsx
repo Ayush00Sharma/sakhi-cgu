@@ -1,12 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Siren, MapPin, Timer, PhoneCall, CheckCircle2, X, ShieldAlert } from "lucide-react";
+import { Siren, MapPin, Timer, PhoneCall, CheckCircle2, X, ShieldAlert, Mic, PhoneIncoming } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/safety/AppShell";
 import { Button } from "@/components/ui/button";
+import { FakeCall } from "@/components/safety/FakeCall";
+import { LiveShareCard } from "@/components/safety/LiveShareCard";
+import { SafeSpacesMap } from "@/components/safety/SafeSpacesMap";
+import { IncidentReportForm } from "@/components/safety/IncidentReportForm";
+import { SafetySettingsCard } from "@/components/safety/SafetySettingsCard";
+import { useSafetySettings } from "@/hooks/useSafetySettings";
+import { useLiveShare } from "@/hooks/useLiveShare";
+import { useSosRecorder } from "@/hooks/useSosRecorder";
+import { getPosition } from "@/lib/geo";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -28,22 +37,23 @@ const HELPLINES = [
   { label: "Domestic abuse", number: "181" },
 ];
 
-function getPosition(): Promise<{ lat: number | null; lng: number | null }> {
-  return new Promise((resolve) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve({ lat: null, lng: null });
-    navigator.geolocation.getCurrentPosition(
-      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => resolve({ lat: null, lng: null }),
-      { timeout: 8000 },
-    );
-  });
-}
-
 function Dashboard() {
   const queryClient = useQueryClient();
   const [minutes, setMinutes] = useState(15);
   const [remaining, setRemaining] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [fakeCallOpen, setFakeCallOpen] = useState(false);
+
+  const { settings } = useSafetySettings();
+  const liveShare = useLiveShare();
+  const recorder = useSosRecorder();
+  const silent = settings.silent_mode;
+
+  function notify(message: string, kind: "success" | "error" = "success") {
+    if (silent) return;
+    if (kind === "error") toast.error(message);
+    else toast.success(message);
+  }
 
   const contacts = useQuery({
     queryKey: ["contacts"],
@@ -76,21 +86,42 @@ function Dashboard() {
       const userId = userData.user?.id;
       if (!userId) throw new Error("Not signed in");
       const { lat, lng } = await getPosition();
-      const { error } = await supabase.from("safety_alerts").insert({
-        user_id: userId,
-        alert_type: type,
-        message,
-        latitude: lat,
-        longitude: lng,
-      });
+      const isEmergency = type === "sos" || type === "checkin_missed";
+
+      let shareId: string | null = null;
+      if (isEmergency && settings.auto_share_location) {
+        try {
+          const created = await liveShare.startShare("sos");
+          shareId = created?.id ?? null;
+        } catch {
+          shareId = null;
+        }
+      }
+
+      const { data: alert, error } = await supabase
+        .from("safety_alerts")
+        .insert({
+          user_id: userId,
+          alert_type: type,
+          message,
+          latitude: lat,
+          longitude: lng,
+          share_id: shareId,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      if (isEmergency && settings.auto_record && recorder.state !== "recording") {
+        void recorder.start(alert.id);
+      }
       return { lat, lng };
     },
     onSuccess: ({ lat }) => {
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
-      toast.success(lat ? "Alert raised with your location." : "Alert raised (location unavailable).");
+      notify(lat ? "Alert raised with your location." : "Alert raised (location unavailable).");
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not raise the alert"),
+    onError: (e) => notify(e instanceof Error ? e.message : "Could not raise the alert", "error"),
   });
 
   const resolveAlert = useMutation({
@@ -119,6 +150,41 @@ function Dashboard() {
 
   return (
     <AppShell>
+      <FakeCall
+        open={fakeCallOpen}
+        callerName={settings.fake_caller_name}
+        photoUrl={settings.fake_caller_photo_url}
+        onClose={() => setFakeCallOpen(false)}
+      />
+
+      <button
+        onClick={() => setFakeCallOpen(true)}
+        aria-label="Trigger a fake incoming call"
+        className="fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl active:scale-95"
+      >
+        <PhoneIncoming className="h-6 w-6" />
+      </button>
+
+      {recorder.state === "recording" && !silent && (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3">
+          <span className="flex h-3 w-3 animate-pulse rounded-full bg-destructive" />
+          <Mic className="h-4 w-4 text-destructive" />
+          <p className="flex-1 text-sm font-medium">
+            Recording audio · {String(Math.floor(recorder.seconds / 60)).padStart(2, "0")}:
+            {String(recorder.seconds % 60).padStart(2, "0")}
+          </p>
+          <Button size="sm" variant="outline" onClick={recorder.stop}>Stop &amp; save</Button>
+        </div>
+      )}
+      {recorder.state === "uploading" && !silent && (
+        <p className="mb-4 text-sm text-muted-foreground">Saving your recording…</p>
+      )}
+      {recorder.state === "denied" && !silent && (
+        <p className="mb-4 text-sm text-muted-foreground">
+          Microphone access was blocked, so auto-recording is off for this alert.
+        </p>
+      )}
+
       {needsSetup && (
         <section className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
           <ShieldAlert className="h-5 w-5 shrink-0 text-primary" />
