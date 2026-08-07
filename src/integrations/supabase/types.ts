@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      incident_reports: {
+        Row: {
+          accuracy: number | null
+          category: string
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          occurred_at: string
+          updated_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          category: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          occurred_at?: string
+          updated_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          category?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          occurred_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      location_shares: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          label: string | null
+          last_ping_at: string | null
+          latitude: number | null
+          longitude: number | null
+          reason: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          last_ping_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          reason?: string
+          token?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          last_ping_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          reason?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -45,33 +129,86 @@ export type Database = {
         Row: {
           alert_type: string
           created_at: string
+          has_recording: boolean
           id: string
           is_active: boolean
           latitude: number | null
           longitude: number | null
           message: string | null
+          recording_path: string | null
+          share_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           alert_type?: string
           created_at?: string
+          has_recording?: boolean
           id?: string
           is_active?: boolean
           latitude?: number | null
           longitude?: number | null
           message?: string | null
+          recording_path?: string | null
+          share_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           alert_type?: string
           created_at?: string
+          has_recording?: boolean
           id?: string
           is_active?: boolean
           latitude?: number | null
           longitude?: number | null
           message?: string | null
+          recording_path?: string | null
+          share_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_alerts_share_id_fkey"
+            columns: ["share_id"]
+            isOneToOne: false
+            referencedRelation: "location_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_settings: {
+        Row: {
+          auto_record: boolean
+          auto_share_location: boolean
+          created_at: string
+          fake_call_delay_seconds: number
+          fake_caller_name: string
+          fake_caller_photo_url: string | null
+          silent_mode: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_record?: boolean
+          auto_share_location?: boolean
+          created_at?: string
+          fake_call_delay_seconds?: number
+          fake_caller_name?: string
+          fake_caller_photo_url?: string | null
+          silent_mode?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_record?: boolean
+          auto_share_location?: boolean
+          created_at?: string
+          fake_call_delay_seconds?: number
+          fake_caller_name?: string
+          fake_caller_photo_url?: string | null
+          silent_mode?: boolean
           updated_at?: string
           user_id?: string
         }
