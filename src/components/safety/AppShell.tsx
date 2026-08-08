@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, LayoutDashboard, Users, LogOut, History } from "lucide-react";
+import { ShieldCheck, LayoutDashboard, Users, LogOut, History, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +58,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             activeProps={{ className: "flex flex-1 flex-col items-center gap-1 py-3 text-xs text-primary font-medium" }}
           >
             <Users className="h-5 w-5" /> Contacts
+          </Link>
+          <Link
+            to="/account"
+            className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted-foreground"
+            activeProps={{ className: "flex flex-1 flex-col items-center gap-1 py-3 text-xs text-primary font-medium" }}
+          >
+            <UserRound className="h-5 w-5" /> Account
           </Link>
         </div>
       </nav>
