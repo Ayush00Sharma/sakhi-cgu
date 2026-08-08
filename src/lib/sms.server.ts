@@ -34,7 +34,7 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
       return { ok: false, error: `Provider error [${response.status}]: ${text.slice(0, 300)}` };
     }
     const json = JSON.parse(text) as { sid?: string };
-    return { ok: true, sid: json.sid ?? undefined };
+    return json.sid ? { ok: true, sid: json.sid } : { ok: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown SMS error";
     console.error("Twilio send threw:", message);

@@ -11,6 +11,8 @@ export const DEFAULT_SETTINGS = {
   fake_caller_name: "Mom",
   fake_caller_photo_url: null as string | null,
   fake_call_delay_seconds: 5,
+  alert_sound: true,
+  track_history: true,
 };
 
 export function useSafetySettings() {
