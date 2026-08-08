@@ -21,7 +21,11 @@ export const notifyContactsOfAlert = createServerFn({ method: "POST" })
       .select("id, name, phone")
       .order("priority", { ascending: true });
 
-    const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("display_name, phone")
+      .eq("id", userId)
+      .maybeSingle();
     const name = profile?.display_name?.trim() || "A Sakhi user";
 
     const list = contacts ?? [];
@@ -29,7 +33,14 @@ export const notifyContactsOfAlert = createServerFn({ method: "POST" })
       return { configured: false, sent: 0, failed: list.length, results: [] };
     }
 
-    const body = buildAlertBody({ name, alertType: data.alertType, link: data.link, lat: data.lat, lng: data.lng });
+    const body = buildAlertBody({
+      name,
+      phone: profile?.phone?.trim() || null,
+      alertType: data.alertType,
+      link: data.link,
+      lat: data.lat,
+      lng: data.lng,
+    });
     const results: SmsFanoutResult["results"] = [];
     let sent = 0;
     let failed = 0;

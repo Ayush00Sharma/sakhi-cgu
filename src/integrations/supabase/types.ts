@@ -202,6 +202,8 @@ export type Database = {
           last_ping_at: string | null
           latitude: number | null
           longitude: number | null
+          owner_name: string | null
+          owner_phone: string | null
           reason: string
           token: string
           updated_at: string
@@ -218,6 +220,8 @@ export type Database = {
           last_ping_at?: string | null
           latitude?: number | null
           longitude?: number | null
+          owner_name?: string | null
+          owner_phone?: string | null
           reason?: string
           token?: string
           updated_at?: string
@@ -234,6 +238,8 @@ export type Database = {
           last_ping_at?: string | null
           latitude?: number | null
           longitude?: number | null
+          owner_name?: string | null
+          owner_phone?: string | null
           reason?: string
           token?: string
           updated_at?: string
