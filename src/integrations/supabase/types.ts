@@ -14,6 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_deliveries: {
+        Row: {
+          alert_id: string | null
+          channel: string
+          contact_id: string | null
+          contact_name: string | null
+          created_at: string
+          error: string | null
+          id: string
+          phone: string
+          provider_message_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_id?: string | null
+          channel?: string
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          phone: string
+          provider_message_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_id?: string | null
+          channel?: string
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          phone?: string
+          provider_message_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_deliveries_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "safety_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_deliveries_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "trusted_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_sessions: {
+        Row: {
+          created_at: string
+          escalated_at: string | null
+          grace_minutes: number
+          id: string
+          interval_minutes: number
+          is_active: boolean
+          last_checkin_at: string | null
+          next_due_at: string
+          share_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          escalated_at?: string | null
+          grace_minutes?: number
+          id?: string
+          interval_minutes?: number
+          is_active?: boolean
+          last_checkin_at?: string | null
+          next_due_at?: string
+          share_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          escalated_at?: string | null
+          grace_minutes?: number
+          id?: string
+          interval_minutes?: number
+          is_active?: boolean
+          last_checkin_at?: string | null
+          next_due_at?: string
+          share_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_sessions_share_id_fkey"
+            columns: ["share_id"]
+            isOneToOne: false
+            referencedRelation: "location_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_reports: {
         Row: {
           accuracy: number | null
@@ -50,9 +160,40 @@ export type Database = {
         }
         Relationships: []
       }
+      location_history: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          recorded_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          recorded_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       location_shares: {
         Row: {
           accuracy: number | null
+          alert_active: boolean
           created_at: string
           expires_at: string
           id: string
@@ -68,6 +209,7 @@ export type Database = {
         }
         Insert: {
           accuracy?: number | null
+          alert_active?: boolean
           created_at?: string
           expires_at?: string
           id?: string
@@ -83,6 +225,7 @@ export type Database = {
         }
         Update: {
           accuracy?: number | null
+          alert_active?: boolean
           created_at?: string
           expires_at?: string
           id?: string
@@ -180,6 +323,7 @@ export type Database = {
       }
       safety_settings: {
         Row: {
+          alert_sound: boolean
           auto_record: boolean
           auto_share_location: boolean
           created_at: string
@@ -187,10 +331,12 @@ export type Database = {
           fake_caller_name: string
           fake_caller_photo_url: string | null
           silent_mode: boolean
+          track_history: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          alert_sound?: boolean
           auto_record?: boolean
           auto_share_location?: boolean
           created_at?: string
@@ -198,10 +344,12 @@ export type Database = {
           fake_caller_name?: string
           fake_caller_photo_url?: string | null
           silent_mode?: boolean
+          track_history?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          alert_sound?: boolean
           auto_record?: boolean
           auto_share_location?: boolean
           created_at?: string
@@ -209,6 +357,7 @@ export type Database = {
           fake_caller_name?: string
           fake_caller_photo_url?: string | null
           silent_mode?: boolean
+          track_history?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -258,7 +407,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      purge_old_location_history: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
