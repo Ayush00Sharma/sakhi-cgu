@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { Siren, MapPin, Timer, PhoneCall, CheckCircle2, X, ShieldAlert, Mic, PhoneIncoming } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { Siren, MapPin, Timer, PhoneCall, CheckCircle2, X, ShieldAlert, Mic, PhoneIncoming, MessageSquare } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/safety/AppShell";
@@ -15,7 +14,8 @@ import { SafetySettingsCard } from "@/components/safety/SafetySettingsCard";
 import { useSafetySettings } from "@/hooks/useSafetySettings";
 import { useLiveShare } from "@/hooks/useLiveShare";
 import { useSosRecorder } from "@/hooks/useSosRecorder";
-import { getPosition } from "@/lib/geo";
+import { useCheckinSession } from "@/hooks/useCheckinSession";
+import { useRaiseAlert } from "@/hooks/useRaiseAlert";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -40,19 +40,22 @@ const HELPLINES = [
 function Dashboard() {
   const queryClient = useQueryClient();
   const [minutes, setMinutes] = useState(15);
-  const [remaining, setRemaining] = useState<number | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [fakeCallOpen, setFakeCallOpen] = useState(false);
 
   const { settings } = useSafetySettings();
   const liveShare = useLiveShare();
   const recorder = useSosRecorder();
-  const silent = settings.silent_mode;
+  const checkin = useCheckinSession();
+  const { raiseAlert, silent } = useRaiseAlert();
 
-  function notify(message: string, kind: "success" | "error" = "success") {
-    if (silent) return;
-    if (kind === "error") toast.error(message);
-    else toast.success(message);
+  function triggerSos() {
+    raiseAlert.mutate({
+      type: "sos",
+      message: "Emergency SOS triggered.",
+      onAlertCreated: (alertId) => {
+        if (settings.auto_record && recorder.state !== "recording") void recorder.start(alertId);
+      },
+    });
   }
 
   const contacts = useQuery({
@@ -80,48 +83,17 @@ function Dashboard() {
     },
   });
 
-  const raiseAlert = useMutation({
-    mutationFn: async ({ type, message }: { type: string; message: string }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      if (!userId) throw new Error("Not signed in");
-      const { lat, lng } = await getPosition();
-      const isEmergency = type === "sos" || type === "checkin_missed";
-
-      let shareId: string | null = null;
-      if (isEmergency && settings.auto_share_location) {
-        try {
-          const created = await liveShare.startShare("sos");
-          shareId = created?.id ?? null;
-        } catch {
-          shareId = null;
-        }
-      }
-
-      const { data: alert, error } = await supabase
-        .from("safety_alerts")
-        .insert({
-          user_id: userId,
-          alert_type: type,
-          message,
-          latitude: lat,
-          longitude: lng,
-          share_id: shareId,
-        })
-        .select("id")
-        .single();
+  const deliveries = useQuery({
+    queryKey: ["alert-deliveries"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("alert_deliveries")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
       if (error) throw error;
-
-      if (isEmergency && settings.auto_record && recorder.state !== "recording") {
-        void recorder.start(alert.id);
-      }
-      return { lat, lng };
+      return data;
     },
-    onSuccess: ({ lat }) => {
-      queryClient.invalidateQueries({ queryKey: ["alerts"] });
-      notify(lat ? "Alert raised with your location." : "Alert raised (location unavailable).");
-    },
-    onError: (e) => notify(e instanceof Error ? e.message : "Could not raise the alert", "error"),
   });
 
   const resolveAlert = useMutation({
@@ -131,18 +103,6 @@ function Dashboard() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["alerts"] }),
   });
-
-  useEffect(() => {
-    if (remaining === null) return;
-    if (remaining <= 0) {
-      setRemaining(null);
-      raiseAlert.mutate({ type: "checkin_missed", message: "Safe-arrival check-in was missed." });
-      return;
-    }
-    timerRef.current = setInterval(() => setRemaining((r) => (r === null ? null : r - 1)), 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining]);
 
   const activeAlerts = (alerts.data ?? []).filter((a) => a.is_active);
   const verifiedContacts = (contacts.data ?? []).filter((c) => c.verified_at);
