@@ -11,6 +11,7 @@ import { LiveShareCard } from "@/components/safety/LiveShareCard";
 import { SafeSpacesMap } from "@/components/safety/SafeSpacesMap";
 import { IncidentReportForm } from "@/components/safety/IncidentReportForm";
 import { SafetySettingsCard } from "@/components/safety/SafetySettingsCard";
+import { PrivacyControlsCard } from "@/components/safety/PrivacyControlsCard";
 import { useSafetySettings } from "@/hooks/useSafetySettings";
 import { useLiveShare } from "@/hooks/useLiveShare";
 import { useSosRecorder } from "@/hooks/useSosRecorder";
@@ -42,7 +43,7 @@ function Dashboard() {
   const [minutes, setMinutes] = useState(15);
   const [fakeCallOpen, setFakeCallOpen] = useState(false);
 
-  const { settings } = useSafetySettings();
+  const { settings, trackingPaused } = useSafetySettings();
   const liveShare = useLiveShare();
   const recorder = useSosRecorder();
   const checkin = useCheckinSession();
@@ -218,7 +219,8 @@ function Dashboard() {
                 className="ml-auto h-12"
                 onClick={() => {
                   void checkin.start(minutes);
-                  if (settings.auto_share_location) void liveShare.startShare("checkin");
+                  if (settings.auto_share_location && !settings.confirm_share_on_sos && !trackingPaused)
+                    void liveShare.startShare("checkin");
                 }}
               >
                 Start
@@ -322,6 +324,8 @@ function Dashboard() {
       <SafeSpacesMap />
 
       <IncidentReportForm />
+
+      <PrivacyControlsCard />
 
       <SafetySettingsCard />
 
