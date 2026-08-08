@@ -44,12 +44,14 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
 
 export function buildAlertBody(opts: {
   name: string;
+  phone?: string | null;
   alertType: string;
   link: string | null;
   lat: number | null;
   lng: number | null;
 }) {
   const parts = [`${alertLabel(opts.alertType)} — ${opts.name} needs help (sent via Sakhi).`];
+  if (opts.phone) parts.push(`Call them: ${opts.phone}`);
   if (opts.lat != null && opts.lng != null) {
     parts.push(`Last location: https://www.google.com/maps?q=${opts.lat},${opts.lng}`);
   }
