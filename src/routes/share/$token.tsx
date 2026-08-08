@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ShieldCheck, MapPin, Radio, Siren, VolumeX } from "lucide-react";
+import { ShieldCheck, MapPin, Radio, Siren, VolumeX, PhoneCall } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAlertTone } from "@/hooks/useAlertTone";
@@ -32,7 +32,7 @@ function SharePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("location_shares")
-        .select("latitude, longitude, accuracy, last_ping_at, reason, is_active, expires_at, alert_active")
+        .select("latitude, longitude, accuracy, last_ping_at, reason, is_active, expires_at, alert_active, owner_name, owner_phone")
         .eq("token", token)
         .maybeSingle();
       if (error) throw error;
@@ -66,6 +66,9 @@ function SharePage() {
       </header>
       <main className="mx-auto max-w-2xl px-5 pb-16">
         <h1 className="text-2xl font-semibold tracking-tight">Live location</h1>
+        {data?.owner_name && (
+          <p className="mt-1 text-sm text-muted-foreground">Shared by {data.owner_name}</p>
+        )}
         {share.isLoading ? (
           <p className="mt-2 text-sm text-muted-foreground">Loading…</p>
         ) : !data ? (
@@ -75,6 +78,7 @@ function SharePage() {
         ) : (
           <>
             {emergency && (
+              <>
               <div className="mt-4 flex items-center gap-3 rounded-2xl border border-destructive/50 bg-destructive/10 px-4 py-4">
                 <Siren className="h-6 w-6 shrink-0 animate-pulse text-destructive" />
                 <div className="min-w-0 flex-1">
