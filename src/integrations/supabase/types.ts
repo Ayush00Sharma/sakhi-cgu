@@ -326,12 +326,14 @@ export type Database = {
           alert_sound: boolean
           auto_record: boolean
           auto_share_location: boolean
+          confirm_share_on_sos: boolean
           created_at: string
           fake_call_delay_seconds: number
           fake_caller_name: string
           fake_caller_photo_url: string | null
           silent_mode: boolean
           track_history: boolean
+          tracking_paused_until: string | null
           updated_at: string
           user_id: string
         }
@@ -339,12 +341,14 @@ export type Database = {
           alert_sound?: boolean
           auto_record?: boolean
           auto_share_location?: boolean
+          confirm_share_on_sos?: boolean
           created_at?: string
           fake_call_delay_seconds?: number
           fake_caller_name?: string
           fake_caller_photo_url?: string | null
           silent_mode?: boolean
           track_history?: boolean
+          tracking_paused_until?: string | null
           updated_at?: string
           user_id: string
         }
@@ -352,12 +356,14 @@ export type Database = {
           alert_sound?: boolean
           auto_record?: boolean
           auto_share_location?: boolean
+          confirm_share_on_sos?: boolean
           created_at?: string
           fake_call_delay_seconds?: number
           fake_caller_name?: string
           fake_caller_photo_url?: string | null
           silent_mode?: boolean
           track_history?: boolean
+          tracking_paused_until?: string | null
           updated_at?: string
           user_id?: string
         }
