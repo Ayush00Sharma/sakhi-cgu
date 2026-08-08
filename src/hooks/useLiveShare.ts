@@ -83,6 +83,11 @@ export function useLiveShare(options: { watch?: boolean } = {}) {
           }
           return share;
         }
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name, phone")
+          .eq("id", userId)
+          .maybeSingle();
         const { data, error } = await supabase
           .from("location_shares")
           .insert({
@@ -90,6 +95,8 @@ export function useLiveShare(options: { watch?: boolean } = {}) {
             reason,
             label: opts.label ?? null,
             alert_active: opts.alert ?? false,
+            owner_name: profile?.display_name ?? null,
+            owner_phone: profile?.phone ?? null,
           })
           .select("*")
           .single();
