@@ -13,15 +13,15 @@ import { useSafetySettings } from "@/hooks/useSafetySettings";
  * across pages, records the location trail, and runs repeating check-ins.
  */
 export function SafetyBackground() {
-  const { settings } = useSafetySettings();
+  const { settings, trackingPaused } = useSafetySettings();
   const { session, checkIn, stop, markEscalated } = useCheckinSession();
   const { raiseAlert, silent, tone } = useRaiseAlert();
   const [now, setNow] = useState(() => Date.now());
   const escalating = useRef(false);
 
   // Continuous position streaming for any active share (single watcher app-wide).
-  useLiveShare({ watch: true });
-  useLocationHistoryRecorder(settings.track_history);
+  useLiveShare({ watch: !trackingPaused });
+  useLocationHistoryRecorder(settings.track_history && !trackingPaused);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
