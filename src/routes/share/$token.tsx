@@ -94,6 +94,15 @@ function SharePage() {
                   {muted ? "Unmute" : <span className="flex items-center gap-1"><VolumeX className="h-3.5 w-3.5" /> Mute</span>}
                 </button>
               </div>
+              {data.owner_phone && (
+                <a
+                  href={`tel:${data.owner_phone}`}
+                  className="mt-3 flex h-14 items-center justify-center gap-2 rounded-2xl bg-destructive text-base font-semibold text-destructive-foreground"
+                >
+                  <PhoneCall className="h-5 w-5" /> Call {data.owner_name ?? "them"} now
+                </a>
+              )}
+              </>
             )}
             <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
               <Radio className="h-4 w-4 animate-pulse text-destructive" />
