@@ -14,7 +14,7 @@ export type RaiseAlertInput = { type: string; message: string; onAlertCreated?: 
 /** Shared emergency pipeline: location → live share → alert row → SMS fan-out → alert tone. */
 export function useRaiseAlert() {
   const queryClient = useQueryClient();
-  const { settings } = useSafetySettings();
+  const { settings, trackingPaused } = useSafetySettings();
   const liveShare = useLiveShare();
   const tone = useAlertTone();
   const notify = useServerFn(notifyContactsOfAlert);
@@ -37,7 +37,9 @@ export function useRaiseAlert() {
 
       let shareId: string | null = null;
       let link: string | null = null;
-      if (isEmergency && settings.auto_share_location) {
+      const shareAllowed = settings.auto_share_location && !trackingPaused;
+      const shareDeferred = isEmergency && shareAllowed && settings.confirm_share_on_sos;
+      if (isEmergency && shareAllowed && !settings.confirm_share_on_sos) {
         try {
           const created = await liveShare.startShare(type === "sos" ? "sos" : "checkin", { alert: true });
           shareId = created?.id ?? null;
@@ -75,11 +77,23 @@ export function useRaiseAlert() {
         }
       }
 
-      return { lat, sms };
+      return { lat, sms, shareDeferred, alertType: type };
     },
-    onSuccess: ({ lat, sms }) => {
+    onSuccess: ({ lat, sms, shareDeferred, alertType }) => {
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       queryClient.invalidateQueries({ queryKey: ["alert-deliveries"] });
+      if (shareDeferred && !silent) {
+        toast("Share your live location?", {
+          description: "Sharing is set to ask first, so it hasn't started yet.",
+          duration: 60000,
+          action: {
+            label: "Start sharing",
+            onClick: () => {
+              void liveShare.startShare(alertType === "sos" ? "sos" : "checkin", { alert: true });
+            },
+          },
+        });
+      }
       if (sms && !sms.configured) {
         say("Alert logged, but text messages aren't set up yet.", "error");
       } else if (sms) {
