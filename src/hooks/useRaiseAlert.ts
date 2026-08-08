@@ -35,6 +35,18 @@ export function useRaiseAlert() {
       const { lat, lng } = await getPosition();
       const isEmergency = type === "sos" || type === "checkin_missed";
 
+      // Top-priority trusted contact, so the app can auto-dial them after the alert.
+      let callContact: { name: string; phone: string } | null = null;
+      if (isEmergency) {
+        const { data: top } = await supabase
+          .from("trusted_contacts")
+          .select("name, phone")
+          .order("priority", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        callContact = top ?? null;
+      }
+
       let shareId: string | null = null;
       let link: string | null = null;
       const shareAllowed = settings.auto_share_location && !trackingPaused;
@@ -77,11 +89,24 @@ export function useRaiseAlert() {
         }
       }
 
-      return { lat, sms, shareDeferred, alertType: type };
+      return { lat, sms, shareDeferred, alertType: type, callContact };
     },
-    onSuccess: ({ lat, sms, shareDeferred, alertType }) => {
+    onSuccess: ({ lat, sms, shareDeferred, alertType, callContact }) => {
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       queryClient.invalidateQueries({ queryKey: ["alert-deliveries"] });
+      // Auto-dial the first trusted contact from this device (never in silent mode).
+      if (callContact && !silent && typeof window !== "undefined") {
+        toast(`Calling ${callContact.name}…`, {
+          description: callContact.phone,
+          action: {
+            label: "Call again",
+            onClick: () => { window.location.href = `tel:${callContact.phone}`; },
+          },
+        });
+        window.setTimeout(() => {
+          window.location.href = `tel:${callContact.phone}`;
+        }, 400);
+      }
       if (shareDeferred && !silent) {
         toast("Share your live location?", {
           description: "Sharing is set to ask first, so it hasn't started yet.",
