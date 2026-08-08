@@ -13,6 +13,8 @@ export const DEFAULT_SETTINGS = {
   fake_call_delay_seconds: 5,
   alert_sound: true,
   track_history: true,
+  tracking_paused_until: null as string | null,
+  confirm_share_on_sos: false,
 };
 
 export function useSafetySettings() {
@@ -50,5 +52,8 @@ export function useSafetySettings() {
 
   const settings = { ...DEFAULT_SETTINGS, ...(query.data ?? {}) };
 
-  return { settings, isLoading: query.isLoading, update };
+  const trackingPaused =
+    !!settings.tracking_paused_until && new Date(settings.tracking_paused_until).getTime() > Date.now();
+
+  return { settings, trackingPaused, isLoading: query.isLoading, update };
 }
