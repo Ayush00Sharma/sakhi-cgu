@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BellOff, Settings2 } from "lucide-react";
+import { BellOff, BellRing, Settings2, History } from "lucide-react";
 
 import { useSafetySettings } from "@/hooks/useSafetySettings";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,20 @@ export function SafetySettingsCard() {
       title: "Auto live-share on SOS",
       body: "Open a live location link whenever SOS or a check-in timer starts.",
       value: settings.auto_share_location,
+    },
+    {
+      key: "alert_sound" as const,
+      icon: BellRing,
+      title: "Distinct emergency tone",
+      body: "Play the unique rising siren — clearly different from a normal notification — on alerts and check-in prompts.",
+      value: settings.alert_sound,
+    },
+    {
+      key: "track_history" as const,
+      icon: History,
+      title: "Record location history",
+      body: "Keep a private trail of where you've been for the last 10 days.",
+      value: settings.track_history,
     },
   ];
 

@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, LayoutDashboard, Users, LogOut } from "lucide-react";
+import { ShieldCheck, LayoutDashboard, Users, LogOut, History } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { SafetyBackground } from "@/components/safety/SafetyBackground";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="mx-auto max-w-2xl px-5 py-6">{children}</main>
 
+      <SafetyBackground />
+
       <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-2xl">
           <Link
@@ -41,6 +44,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             activeProps={{ className: "flex flex-1 flex-col items-center gap-1 py-3 text-xs text-primary font-medium" }}
           >
             <LayoutDashboard className="h-5 w-5" /> Safety
+          </Link>
+          <Link
+            to="/history"
+            className="flex flex-1 flex-col items-center gap-1 py-3 text-xs text-muted-foreground"
+            activeProps={{ className: "flex flex-1 flex-col items-center gap-1 py-3 text-xs text-primary font-medium" }}
+          >
+            <History className="h-5 w-5" /> History
           </Link>
           <Link
             to="/contacts"
